@@ -8,17 +8,24 @@ bufferSize = 1024
 TIME1970   = 2208988800
 
 
-def sntp_client():
-    li = '00'
-    vn = '011'
-    mode = '011'
-    primerByte = li + vn + mode
-    primerByte = str(hex(int(primerByte, 2)))[1:]
+def to_data(li = 0, vn = 3, mode = 3):
+    try:
+        packed = struct.pack("!B",
+            (li << 6 | vn << 3 | mode))
+    except struct.error:
+        pass
+    return packed
 
+def sntp_client():
+    li = 0
+    vn = 3
+    mode = 3
     client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    data = '\\' + primerByte + 47 * '\0'
-    print(data.encode('utf-8'))
-    client.sendto(data.encode('utf-8'), server)
+
+    sig = 47 * '\0'
+    sig = sig.encode('utf-8')
+    data = to_data(li, vn, mode) + sig
+    client.sendto(data, server)
     data, address = client.recvfrom(1024)
     # if data: print('Response received from:', address)
     # t = struct.unpack('!12I', data)[10] - TIME1970

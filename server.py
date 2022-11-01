@@ -12,10 +12,8 @@ TIME1970   = 2208988800
 def unpackData(data):
         try:
             unpacked = struct.unpack("!B B B b 11I", data[0:48])
-            print(unpacked)
         except struct.error:
             pass
-        #  00011011
         valores = {}
         valores['Leap Indicator'] = unpacked[0] >> 6 & 0x3
         valores['Version Number'] = unpacked[0] >> 3 & 0x7
