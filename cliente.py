@@ -25,11 +25,11 @@ def sntp_client():
     data = to_data(vn) + sig
     client.sendto(data, server)
     data, address = client.recvfrom(1024)
-    # if data: print('Response received from:', address)
-    # t = struct.unpack('!12I', data)[10] - TIME1970
-    # print('\tTime = %s' % time.ctime(t))
+    if data: print('Response received from:', address)
+    t = struct.unpack('!12I', data)[10] - TIME1970
+    print('\tTime = %s' % time.ctime(t))
 
-    print(time.ctime(float(str(data)[2:-1]) - TIME1970))
+    # print(time.ctime(float(str(data)[2:-1]) - TIME1970))
 
 if __name__ == '__main__':
     sntp_client()

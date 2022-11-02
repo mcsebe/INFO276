@@ -31,7 +31,7 @@ def unpackData(data):
     
     return valores
 
-def changeData(valores):
+def changeData(valores, llegada):
     valores['Leap Indicator'] = 0
     valores['Stratum'] = 1
     if (valores['Mode'] == 3): valores['Mode'] = 4 
@@ -39,24 +39,27 @@ def changeData(valores):
     valores['Root Delay'] = float(0)
     valores['Root Dispersion'] = float(0)
     valores['Reference Clock Identifier'] = 0 #Si no se especifica
+    valores['Receive Timestamp'] = llegada
+    valores['Transmit Timestamp'] = time.time() + TIME1970
+
 def packed_Data(valores):
     try:
         packed = struct.pack("!B B B b 11I", (valores['Leap Indicator'] << 6 | valores['Version Number'] << 3 | valores['Mode']),
-                            valores['Stratum'],
-                            valores['Poll Interval'],
-                            valores['Precision'],                              
-                            int(valores['Root Delay']) << 16 | int(abs(valores['Root Delay'] - int(valores['Root Delay'])) * 2**16),
-                            int(valores['Root Dispersion']) << 16 | int(abs(valores['Root Dispersion'] - int(valores['Root Dispersion'])) * 2**16),
-                            valores['Reference Clock Identifier'],
-                            int(valores['Reference Timestamp']),
-                            int(abs(valores['Reference Timestamp'] - int(valores['Reference Timestamp'])) * 2**32),
-                            int(valores['Originate Timestamp']),
-                            int(abs(valores['Originate Timestamp'] - int(valores['Originate Timestamp'])) * 2**32),
-                            int(valores['Receive Timestamp']),
-                            int(abs(valores['Receive Timestamp'] - int(valores['Receive Timestamp'])) * 2**32),
-                            int( valores['Transmit Timestamp']),
-                            int(abs( valores['Transmit Timestamp'] - int( valores['Transmit Timestamp'])) * 2**32)
-                            )   
+                    valores['Stratum'],
+                    valores['Poll Interval'],
+                    valores['Precision'],                              
+                    int(valores['Root Delay']) << 16 | int(abs(valores['Root Delay'] - int(valores['Root Delay'])) * 2**16),
+                    int(valores['Root Dispersion']) << 16 | int(abs(valores['Root Dispersion'] - int(valores['Root Dispersion'])) * 2**16),
+                    valores['Reference Clock Identifier'],
+                    int(valores['Reference Timestamp']),
+                    int(abs(valores['Reference Timestamp'] - int(valores['Reference Timestamp'])) * 2**32),
+                    int(valores['Originate Timestamp']),
+                    int(abs(valores['Originate Timestamp'] - int(valores['Originate Timestamp'])) * 2**32),
+                    int(valores['Receive Timestamp']),
+                    int(abs(valores['Receive Timestamp'] - int(valores['Receive Timestamp'])) * 2**32),
+                    int( valores['Transmit Timestamp']),
+                    int(abs( valores['Transmit Timestamp'] - int( valores['Transmit Timestamp'])) * 2**32)
+                    )   
     except struct.error:
         pass
     return packed   
@@ -74,18 +77,18 @@ def sntp_server():
             bytesAddressPair = UDPServerSocket.recvfrom(bufferSize)
             data = bytesAddressPair[0]
             address = bytesAddressPair[1]
+            llegada = time.time() + TIME1970
             print("Link bussy")
-            print(data)
+
             valores = unpackData(data)
             print(valores)
             # Sending a reply to client
-            changeData(valores)
+            changeData(valores, llegada)
             print(valores)
+
             packed_val = packed_Data(valores)
-            print(packed_val)
-            tiempo = time.time() + TIME1970
-            print(tiempo)
-            UDPServerSocket.sendto(str.encode(str(tiempo)), address)
+
+            UDPServerSocket.sendto(packed_val, address)
             print("Link Available")
         except:
             pass
